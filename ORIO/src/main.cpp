@@ -1,11 +1,13 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+// Setup Pins numbers related to board
+const int dirpin = 0; // Fill in later when we get the board
+const int steppin = 0; // Change pin later when we get the board
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  // Setting pins to output
+  pinMode(dirpin, OUTPUT);
+  pinMode(steppin, OUTPUT);
 }
 
 void loop() {

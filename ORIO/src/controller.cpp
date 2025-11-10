@@ -189,20 +189,17 @@ const char* HTML_CONTENT = R"rawliteral(
         <section id="TRACK_VIEW" class="hidden p-4 bg-gray-800 rounded-xl shadow-lg border-b-4 border-yellow-600">
             <h2 class="text-2xl font-bold mb-4 text-yellow-400">Automatic Tracking</h2>
             
-            <p class="text-gray-300 mb-6">Togglign this will start automatically tracking based on the GoTo provided.</p>
+            <p class="text-gray-300 mb-6">Toggling this will start automatically tracking based on the GoTo provided.</p>
 
             <div class="flex items-center justify-between p-4 bg-gray-700 rounded-xl shadow-inner">
                 <label for="trackingModeToggle" class="text-xl font-semibold text-white">Tracking Status:</label>
-                <button id="trackingModeToggle" 
+                <button id="trackingButton" 
                         class="px-5 py-2 font-bold rounded-full text-sm transition-colors duration-300 bg-red-600 text-white hover:bg-red-700" 
                         data-mode="STOPPED">
                     STOPPED
                 </button>
             </div>
             
-            <div class="mt-4 p-3 bg-gray-700 rounded-lg text-sm text-gray-400">
-                <p>Ensure your polar alignment is complete before starting long exposures.</p>
-            </div>
         </section>
 
     </main>
@@ -213,6 +210,7 @@ const char* HTML_CONTENT = R"rawliteral(
     </div>
 
     <!-- The below describes the star tracker controller class which manages the connection with ESP32 -->
+    <!-- This is the java script code which will allow the controller to actually function-->
 
     <script>
         // CONSTANTS (Creates a dictionary to refer to the previous ID's of the different page views for ease of programming)
@@ -225,248 +223,74 @@ const char* HTML_CONTENT = R"rawliteral(
         
         // Here change the IP Address of the ESP32
         const ESP32_IP = 'http://192.168.4.1'; 
-
-        // Classes (This is a javascript defined class because it will serve to function on the website and will send stuff
-        // back to the ESP32 where it will take this information and run it with the C++ Code)
         
-        /**
-         * Class: StarTrackerController
-         * Manages device state and communication with ESP32
-         */
-        class StarTrackerController {
-            constructor() {
-                this.isTracking = false;
-                this.status = '';
+        // UI Handling Here
+        
+        function renderView(viewID) {
+            // First we must hide all of the views
+            Object.values(VIEWS).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            
+            // Show target view
+            const targetEl = document.getElementById(viewID);
+            if (targetEl) {
+                targetEl.classList.remove('hidden');
             }
             
-            /**
-             * Primary function to send commands to the ESP32/Stepper Motors.
-             */
-            async sendCommand(command, value) {
-                const url = `${ESP32_IP}/control?cmd=${command}&val=${value}`;
-
-                try {
-                    const response = await fetch(url, { method: 'GET' });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP Error: ${response.status}`);
-                    }
-                    
-                    const responseText = await response.text();
-                    this.status = `Sent ${command}. Server Response: ${responseText}`;
-                    return this.status;
-
-                } catch (error) {
-                    this.status = `COMMUNICATION ERROR: Could not reach tracker at ${ESP32_IP}. Check Wi-Fi. (${error.message})`;
-                    return this.status;
-                }
-            }
-
-            // Methods (Getters/Setters)
-
-            async toggleTracking(isTracking) {
-                this.isTracking = isTracking;
-                const command = isTracking ? 'TRACK_START' : 'TRACK_STOP';
-                const value = 'SIDEREAL'; 
-                return this.sendCommand(command, value);
-            }
-
-            async jogAxis(axis, direction) {
-                if (direction === 'STOP') {
-                    return this.sendCommand('STOP', axis); // Command: STOP, Value: RA or DEC
-                }
-                const command = 'JOG';
-                // Value format: RA_UP_10
-                const value = `${axis}_${direction}_${10}`; 
-                return this.sendCommand(command, value);
-            }
+            // Managing back button visibility (only to be shown when not on the main page)
+            const backButtonContainer = document.getElementById('backButtonContainer');
+            const statusMessage = document.getElementById('statusMessage');
             
-            async goTo(ra, dec) {
-                const command = 'GOTO';
-                // Value format: 00:00:00,+00:00:00 (RA,DEC)
-                const value = `${ra},${dec}`;
-                return this.sendCommand(command, value);
+            if (viewID === VIEWS.MAIN) {
+                backButtonContainer.classList.add('hidden');
+                statusMessage.textContent = 'Main Menu'
+            }
+            else {
+                backButtonContainer.classList.remove('hidden');
+                statusMessage.textContent = `Mode: ${viewID.replace('_VIEW', '')}`;
             }
         }
         
-        /**
-         * Class: UIHandler
-         * Manages all DOM interactions, event listeners, and view switching.
-         */
-        class UIHandler {
-            constructor(controller) {
-                this.controller = controller;
-                this.currentView = VIEWS.MAIN;
-                
-                // DOM Elements
-                this.statusMessage = document.getElementById('statusMessage');
-                this.viewContainer = document.getElementById('viewContainer');
-                this.backButtonContainer = document.getElementById('backButtonContainer');
-                
-                // Setup/Jog Elements
-                this.controlButtons = document.querySelectorAll('#SETUP_VIEW button[data-axis]');
-                
-                // Track Elements
-                this.trackingToggle = document.getElementById('trackingModeToggle');
-
-                // GoTo Elements
-                this.raInput = document.getElementById('raInput');
-                this.decInput = document.getElementById('decInput');
-
-
-                this.setupEventListeners();
-                this.renderView(VIEWS.MAIN);
-            }
-
-            setupEventListeners() {
-                // 1. Navigation Buttons (Main Menu)
-                document.querySelectorAll('.view-nav-button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        this.renderView(e.currentTarget.dataset.targetView);
-                    });
-                });
-                
-                // 2. Back Button
-                document.getElementById('backButton').addEventListener('click', () => {
-                    this.renderView(VIEWS.MAIN);
-                });
-
-                // 3. Setup/Jog Controls
-                this.controlButtons.forEach(button => {
-                    button.addEventListener('mousedown', (e) => this.handleJogStart(e));
-                    button.addEventListener('mouseup', (e) => this.handleJogStop(e));
-                    button.addEventListener('touchstart', (e) => { e.preventDefault(); this.handleJogStart(e); });
-                    button.addEventListener('touchend', (e) => { e.preventDefault(); this.handleJogStop(e); });
-                });
-                
-                // 4. Tracking Mode Toggle
-                this.trackingToggle.addEventListener('click', () => this.handleTrackingToggle());
-                
-                // 5. GoTo Button
-
-            }
-
-            // --- NAVIGATION LOGIC ---
-
-            renderView(viewId) {
-                this.currentView = viewId;
-                
-                // Hide all views
-                Object.values(VIEWS).forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.classList.add('hidden');
-                });
-
-                // Show the target view
-                const targetEl = document.getElementById(viewId);
-                if (targetEl) {
-                    targetEl.classList.remove('hidden');
-                }
-                
-                // Manage Back Button visibility
-                if (viewId === VIEWS.MAIN) {
-                    this.backButtonContainer.classList.add('hidden');
-                    this.updateStatus('Controller ready. Select a mode.');
-                } else {
-                    this.backButtonContainer.classList.remove('hidden');
-                    this.updateStatus(`Mode: ${viewId.replace('_VIEW', '')}`);
-                }
-            }
+        // Event listeners
+        
+        // Initializing the main view upon loading
+    window.onload = function(){
+            renderView(VIEWS.MAIN);
+        
+        // Listening for button click
+        document.querySelectorAll('.view-nav-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetViewID = e.currentTarget.dataset.targetView;
+                renderView(targetViewID);
+            });
+        });
+        
+        // Back Button Setup
+        document.getElementById('backButton').addEventListener('click', () => {
+            renderView(VIEWS.MAIN);
+        });
+        
+        // Tracking Button Setup
+        document.getElementById('trackingButton').addEventListener('click', (e) => {
+            const button = e.currentTarget;
             
-            // --- HANDLERS ---
-
-            async handleJogStart(e) {
-                const button = e.currentTarget;
-                const axis = button.dataset.axis;
-                const direction = button.dataset.direction;
-                
-                // If the user clicks 'STOP', send the STOP command directly
-                if (direction === 'STOP') {
-                    await this.controller.jogAxis(axis, direction);
-                    this.updateStatus(`Manual STOP command sent for ${axis}`);
-                    return;
-                } 
-                
-                // Otherwise, send the JOG command
-                button.disabled = true;
-                const status = await this.controller.jogAxis(axis, direction);
-                button.disabled = false;
-                this.updateStatus(status);
+            if (button.dataset.mode === 'STOPPED'){
+                button.dataset.mode = 'TRACKING';
+                button.textContent = 'TRACKING';
+                button.classList.remove('bg-red-600', 'hover:bg-red-700');
+                button.classList.add('bg-green-600', 'hover:bg-green-700');
             }
-            
-            async handleJogStop(e) {
-                const button = e.currentTarget;
-                const axis = button.dataset.axis;
-                const direction = button.dataset.direction;
-                
-                // We only want to send STOP if the button being released was NOT the dedicated STOP button
-                if (direction !== 'STOP') {
-                    const status = await this.controller.jogAxis(axis, 'STOP');
-                    this.updateStatus(`STOP command automatically sent for ${axis}.`);
-                }
+            else{
+                button.dataset.mode = 'STOPPED';
+                button.textContent = 'STOPPED';
+                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                button.classList.add('bg-red-600', 'hover:bg-red-700');
             }
-
-            async handleTrackingToggle() {
-                const newMode = !this.controller.isTracking;
-                
-                this.trackingToggle.disabled = true; 
-                
-                const statusMessage = await this.controller.toggleTracking(newMode);
-                
-                this.trackingToggle.disabled = false;
-                
-                const modeText = newMode ? 'SIDEREAL TRACKING' : 'STOPPED';
-                
-                this.trackingToggle.textContent = modeText;
-                
-                // Update button color based on mode
-                if (newMode) {
-                    this.trackingToggle.classList.remove('bg-red-600', 'hover:bg-red-700');
-                    this.trackingToggle.classList.add('bg-green-600', 'hover:bg-green-700');
-                } else {
-                    this.trackingToggle.classList.remove('bg-green-600', 'hover:bg-green-700');
-                    this.trackingToggle.classList.add('bg-red-600', 'hover:bg-red-700');
-                }
-                
-                this.updateStatus(statusMessage);
-            }
-            
-            async handleGoTo() {
-                const ra = this.raInput.value.trim();
-                const dec = this.decInput.value.trim();
-                
-                if (!ra || !dec) {
-                    this.updateStatus('Error: Please enter both RA and DEC coordinates.');
-                    return;
-                }
-                
-                this.goToButton.textContent = "Moving...";
-                this.goToButton.disabled = true;
-
-                const statusMessage = await this.controller.goTo(ra, dec);
-                
-                this.goToButton.textContent = "INITIATE GOTO";
-                this.goToButton.disabled = false;
-
-                this.updateStatus(statusMessage);
-            }
-
-            // --- UTILITY ---
-            
-            updateStatus(message) {
-                this.statusMessage.textContent = message;
-            }
-        }
-
-        // --- APPLICATION INITIALIZATION ---
-
-        window.onload = function() {
-            // Initialize the controller and UI after the DOM is ready
-            const trackerController = new StarTrackerController();
-            const uiHandler = new UIHandler(trackerController);
-
-            uiHandler.updateStatus(`Controller initialized. Target IP: ${ESP32_IP}`);
-        };
+        });
+    }
+       
     </script>
 </body>
 </html>

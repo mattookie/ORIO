@@ -282,50 +282,50 @@ String webpageCode = R"=====(
             });
             
             // Manual Setup Control Buttons
+            
+            // Right ascension controls
             // When clicking down on RARight
             document.getElementById('RARight').addEventListener('mousedown', () => {
-                RARight();
+                sendAction("RARight");
             });
             // Letting go of RARight
             document.getElementById('RARight').addEventListener('mouseup', () => {
-                RAStop();
+                sendAction("RAStop");
             });
             document.getElementById('RALeft').addEventListener('mousedown', () => {
-                RALeft();
+                sendAction("RALeft");
+            });
+            document.getElementById('RALeft').addEventListener('mouseup', () => {
+                sendAction("RAStop");
+            });
+            document.getElementById('RAStop').addEventListener('click', () => {
+                sendAction("RAStop");
+            });
+            
+            // Declination Controls
+            document.getElementById('DECRight').addEventListener('mousedown', () => {
+                sendAction("DECRight");
+            });
+            document.getElementById('DECRight').addEventListener('mouseup', () => {
+                sendAction("DECStop");
+            });
+            document.getElementById('DECLeft').addEventListener('mousedown', () => {
+                sendAction("DECLeft");
+            });
+            document.getElementById('DECLeft').addEventListener('mouseup', () => {
+                sendAction("DECStop");
+            });
+            document.getElementById('DECStop').addEventListener('click', () => {
+                sendAction("DECStop");
             });
         }
     
         // JAVASCRIPT TO SEND CODE TO THE ESP32
-        
-        // MATT DO NOT FORGET TO CALL PROCESS IN THE WINDOW.ONLOAD
-        
         // Send function to ESP32
         function sendAction(action) {
             const url = `${ESP32_IP}/${action}`;
-            
             fetch(url, { method: 'PUT' })
                 
-        }
-        
-        // Sends a string to the ESP32
-        function RARight(){
-            sendAction("RARight");
-        }
-        function RALeft(){
-            sendAction("RALeft");
-        }
-        function RAStop(){
-            sendAction("RAStop");
-        }
-        
-        function DECRight(){
-            sendAction("DECRight");
-        }
-        function DECLeft(){
-            sendAction("DECLeft");
-        }
-        function DECStop(){
-            sendAction("DECStop");
         }
         
     </script>

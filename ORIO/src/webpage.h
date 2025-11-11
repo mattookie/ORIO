@@ -1,5 +1,5 @@
 #include <Arduino.h>
-const char PAGE_MAIN[] PROGMEM = R"=====(
+String webpageCode = R"=====(
 <!DOCTYPE html>
 
 <!-- This contains the meta data about the document -->
@@ -131,17 +131,17 @@ const char PAGE_MAIN[] PROGMEM = R"=====(
                 <div class = "mt-6"></div>
                 <div class="grid grid-cols-3 gap-3">
                     
-                    <button data-axis="RA" data-direction="LEFT" class="control-button bg-[#4682B4] hover:bg-[#346187] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
+                    <button id='RALeft' class="control-button bg-[#4682B4] hover:bg-[#346187] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
                     
-                    <button data-axis="RA" data-direction="STOP" class="control-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg">
+                    <button id='RAStop' class="control-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg">
                         STOP
                     </button>
                     
-                    <button data-axis="RA" data-direction="RIGHT" class="control-button bg-[#4682B4] hover:bg-[#346187] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
+                    <button id='RARight' class="control-button bg-[#4682B4] hover:bg-[#346187] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
@@ -156,17 +156,17 @@ const char PAGE_MAIN[] PROGMEM = R"=====(
                 <div class = "mt-6"></div>
                 <div class="grid grid-cols-3 gap-3">
                     
-                    <button data-axis="DEC" data-direction="LEFT" class="control-button bg-[#7649fe] hover:bg-[#3e01f4] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
+                    <button id='DECLeft' class="control-button bg-[#7649fe] hover:bg-[#3e01f4] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
                     
-                    <button data-axis="DEC" data-direction="STOP" class="control-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg">
+                    <button id='DECStop' class="control-button bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg">
                         STOP
                     </button>
                     
-                    <button data-axis="DEC" data-direction="RIGHT" class="control-button bg-[#7649fe] hover:bg-[#3e01f4] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
+                    <button id='DECRight' class="control-button bg-[#7649fe] hover:bg-[#3e01f4] text-white font-semibold py-3 rounded-lg flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
@@ -247,41 +247,87 @@ const char PAGE_MAIN[] PROGMEM = R"=====(
         // Event listeners
         
         // Initializing the main view upon loading
-    window.onload = function(){
-            renderView(VIEWS.MAIN);
-        
-        // Listening for button click
-        document.querySelectorAll('.view-nav-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const targetViewID = e.currentTarget.dataset.targetView;
-                renderView(targetViewID);
-            });
-        });
-        
-        // Back Button Setup
-        document.getElementById('backButton').addEventListener('click', () => {
-            renderView(VIEWS.MAIN);
-        });
-        
-        // Tracking Button Setup
-        document.getElementById('trackingButton').addEventListener('click', (e) => {
-            const button = e.currentTarget;
+        window.onload = function(){
+                renderView(VIEWS.MAIN);
             
-            if (button.dataset.mode === 'STOPPED'){
-                button.dataset.mode = 'TRACKING';
-                button.textContent = 'TRACKING';
-                button.classList.remove('bg-red-600', 'hover:bg-red-700');
-                button.classList.add('bg-green-600', 'hover:bg-green-700');
-            }
-            else{
-                button.dataset.mode = 'STOPPED';
-                button.textContent = 'STOPPED';
-                button.classList.remove('bg-green-600', 'hover:bg-green-700');
-                button.classList.add('bg-red-600', 'hover:bg-red-700');
-            }
-        });
-    }
-       
+            // Listening for button click
+            document.querySelectorAll('.view-nav-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const targetViewID = e.currentTarget.dataset.targetView;
+                    renderView(targetViewID);
+                });
+            });
+            
+            // Back Button Setup
+            document.getElementById('backButton').addEventListener('click', () => {
+                renderView(VIEWS.MAIN);
+            });
+            
+            // Tracking Button Setup
+            document.getElementById('trackingButton').addEventListener('click', (e) => {
+                const button = e.currentTarget;
+                
+                if (button.dataset.mode === 'STOPPED'){
+                    button.dataset.mode = 'TRACKING';
+                    button.textContent = 'TRACKING';
+                    button.classList.remove('bg-red-600', 'hover:bg-red-700');
+                    button.classList.add('bg-green-600', 'hover:bg-green-700');
+                }
+                else{
+                    button.dataset.mode = 'STOPPED';
+                    button.textContent = 'STOPPED';
+                    button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    button.classList.add('bg-red-600', 'hover:bg-red-700');
+                }
+            });
+            
+            // Manual Setup Control Buttons
+            // When clicking down on RARight
+            document.getElementById('RARight').addEventListener('mousedown', () => {
+                RARight();
+            });
+            // Letting go of RARight
+            document.getElementById('RARight').addEventListener('mouseup', () => {
+                RAStop();
+            });
+            document.getElementById('RALeft').addEventListener('mousedown', () => {
+                RALeft();
+            });
+        }
+    
+        // JAVASCRIPT TO SEND CODE TO THE ESP32
+        
+        // MATT DO NOT FORGET TO CALL PROCESS IN THE WINDOW.ONLOAD
+        
+        // Send function to ESP32
+        function sendAction(action) {
+            const url = `${ESP32_IP}/${action}`;
+            
+            fetch(url, { method: 'PUT' })
+                
+        }
+        
+        // Sends a string to the ESP32
+        function RARight(){
+            sendAction("RARight");
+        }
+        function RALeft(){
+            sendAction("RALeft");
+        }
+        function RAStop(){
+            sendAction("RAStop");
+        }
+        
+        function DECRight(){
+            sendAction("DECRight");
+        }
+        function DECLeft(){
+            sendAction("DECLeft");
+        }
+        function DECStop(){
+            sendAction("DECStop");
+        }
+        
     </script>
 </body>
 </html>

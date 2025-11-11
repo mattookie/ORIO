@@ -15,9 +15,6 @@ bool DECRight = false;
 bool DECLeft = false;
 bool DECStop = true;
 
-const int ledPin = 2;
-
-
 void setupRequestHandlers(){
     server.on("/", HTTP_GET, [](){
       // This sends the HTML_CONTENT string defined above to the client
@@ -66,8 +63,6 @@ void setupRequestHandlers(){
 
 void setup(){
     Serial.begin(115200);
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, LOW);
 
     Serial.print("connecting to network");
     WiFi.begin(ssid, password);
@@ -79,10 +74,10 @@ void setup(){
     }
     Serial.println("");
     if (WiFi.status() == WL_CONNECTED) {
-        // ... (Prints SUCCESS/IP)
+        Serial.println("Connection Successful");
     } else {
         // This is what you should see on failure in the latest version:
-        Serial.println("FAILED to connect to Wi-Fi. Check credentials.");
+        Serial.println("Failed to connect to Wi-Fi.");
     }
     IPAddress IP = WiFi.localIP();
     Serial.print("IP address: ");
@@ -94,16 +89,15 @@ void setup(){
 
 void loop(){
     server.handleClient();
-    digitalWrite(ledPin, HIGH);
 
     if (RARight){
-        digitalWrite(ledPin, HIGH);
+        Serial.println("RA Moving to Right");
     }
     if (RALeft){
-        digitalWrite(ledPin, HIGH);
+        Serial.println("RA Moving to Left");
     }
-    /*if (RAStop){
-        digitalWrite(ledPin, LOW);
-    }*/
+    if (RAStop){
+        Serial.println("RA Stopped");
+    }
 
 }

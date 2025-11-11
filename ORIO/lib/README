@@ -1,8 +1,4 @@
-
-hello chat
-asfhkadslhfklsdlkfjkadsjfkls
-This directory is intended for project specific (private) libraries.
-PlatformIO will compile them to static libraries and link into the executable file.
+Right now contains main.cpp which will need to be changed to a header file which will define functions for our motor usage.
 
 The source code of each library should be placed in a separate directory
 ("lib/your_library_name/[Code]").

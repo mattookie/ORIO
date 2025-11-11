@@ -1,9 +1,6 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <webpage.h>
-#include <ESP32Servo.h>
-
-Servo servo1;
 
 // Network Details
 const char* ssid = "mattphone";
@@ -11,7 +8,6 @@ const char* password = "tanisfat";
 
 WebServer server(80); // Creates webserver on port 80
 
-int servostate = 50;
 bool RARight = false;
 bool RALeft = false;
 bool RAStop = true;
@@ -19,11 +15,12 @@ bool DECRight = false;
 bool DECLeft = false;
 bool DECStop = true;
 
+const int ledPin = 2;
+
 void setup(){
     Serial.begin(9600);
-
-    servo1.attach(26, 1000, 2000);
-    servo1.setPeriodHertz(50);
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, LOW);
 
     Serial.print("connecting to network");
     WiFi.begin(ssid, password);
@@ -41,61 +38,23 @@ void loop(){
     server.handleClient();
     
     if (RARight && !RAStop){
-        servostate += 1;
-        if (servostate > 0){
-            servo1.write(servostate);
-        }
-        else if (servostate <= 0){
-            servostate = 0;
-        }
-        else if (servostate > 90){
-            servostate = 90;
-        }
+        digitalWrite(ledPin, HIGH);
     }
     if (RALeft && !RAStop){
-        servostate -= 1;
-        if (servostate > 0){
-            servo1.write(servostate);
-        }
-        else if (servostate <= 0){
-            servostate = 0;
-        }
-        else if (servostate > 90){
-            servostate = 90;
-        }
+        digitalWrite(ledPin, HIGH);
     }
     if (RAStop){
-        RALeft = false;
-        RARight = false;
+        digitalWrite(ledPin, LOW);
     }
 
     if (DECRight && !DECStop){
-        servostate += 1;
-        if (servostate > 0){
-            servo1.write(servostate);
-        }
-        else if (servostate <= 0){
-            servostate = 0;
-        }
-        else if (servostate > 90){
-            servostate = 90;
-        }
+        digitalWrite(ledPin, HIGH);
     }
     if (DECLeft && !DECStop){
-        servostate -= 1;
-        if (servostate > 0){
-            servo1.write(servostate);
-        }
-        else if (servostate <= 0){
-            servostate = 0;
-        }
-        else if (servostate > 90){
-            servostate = 90;
-        }
+        digitalWrite(ledPin, HIGH);
     }
     if (DECStop){
-        DECLeft = false;
-        DECRight = false;
+        digitalWrite(ledPin, LOW);
     }
 
 }

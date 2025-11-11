@@ -17,47 +17,6 @@ bool DECStop = true;
 
 const int ledPin = 2;
 
-void setup(){
-    Serial.begin(9600);
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, LOW);
-
-    Serial.print("connecting to network");
-    WiFi.begin(ssid, password);
-    IPAddress IP = WiFi.localIP();
-    Serial.print("IP address: ");
-    Serial.println(IP);
-    server.begin();
-    // Define HTTP request handlers
-    setupRequestHandlers();
-
-
-}
-
-void loop(){
-    server.handleClient();
-    
-    if (RARight && !RAStop){
-        digitalWrite(ledPin, HIGH);
-    }
-    if (RALeft && !RAStop){
-        digitalWrite(ledPin, HIGH);
-    }
-    if (RAStop){
-        digitalWrite(ledPin, LOW);
-    }
-
-    if (DECRight && !DECStop){
-        digitalWrite(ledPin, HIGH);
-    }
-    if (DECLeft && !DECStop){
-        digitalWrite(ledPin, HIGH);
-    }
-    if (DECStop){
-        digitalWrite(ledPin, LOW);
-    }
-
-}
 
 void setupRequestHandlers(){
     server.on("/", HTTP_GET, [](){
@@ -103,4 +62,44 @@ void setupRequestHandlers(){
         DECStop = true;
         server.send(200, "text/plain", "DEC Stop");
     });
+}
+
+void setup(){
+    Serial.begin(9600);
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, LOW);
+
+    Serial.print("connecting to network");
+    WiFi.begin(ssid, password);
+    IPAddress IP = WiFi.localIP();
+    Serial.print("IP address: ");
+    Serial.println(IP);
+    server.begin();
+    // Define HTTP request handlers
+    setupRequestHandlers();
+}
+
+void loop(){
+    server.handleClient();
+    
+    if (RARight && !RAStop){
+        digitalWrite(ledPin, HIGH);
+    }
+    if (RALeft && !RAStop){
+        digitalWrite(ledPin, HIGH);
+    }
+    if (RAStop){
+        digitalWrite(ledPin, LOW);
+    }
+
+    if (DECRight && !DECStop){
+        digitalWrite(ledPin, HIGH);
+    }
+    if (DECLeft && !DECStop){
+        digitalWrite(ledPin, HIGH);
+    }
+    if (DECStop){
+        digitalWrite(ledPin, LOW);
+    }
+
 }

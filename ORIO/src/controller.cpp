@@ -3,7 +3,7 @@
 #include <webpage.h>
 
 // Network Details
-const char* ssid = "mattphone";
+const char* ssid = "Matt phone";
 const char* password = "tanisfat";
 
 WebServer server(80); // Creates webserver on port 80
@@ -65,12 +65,25 @@ void setupRequestHandlers(){
 }
 
 void setup(){
-    Serial.begin(9600);
+    Serial.begin(115200);
     pinMode(ledPin, OUTPUT);
     digitalWrite(ledPin, LOW);
 
     Serial.print("connecting to network");
     WiFi.begin(ssid, password);
+    int timeout = 0;
+    while (WiFi.status() != WL_CONNECTED && timeout < 20) {
+        delay(500);
+        Serial.print(".");
+        timeout++;
+    }
+    Serial.println("");
+    if (WiFi.status() == WL_CONNECTED) {
+        // ... (Prints SUCCESS/IP)
+    } else {
+        // This is what you should see on failure in the latest version:
+        Serial.println("FAILED to connect to Wi-Fi. Check credentials.");
+    }
     IPAddress IP = WiFi.localIP();
     Serial.print("IP address: ");
     Serial.println(IP);
@@ -81,25 +94,16 @@ void setup(){
 
 void loop(){
     server.handleClient();
-    
-    if (RARight && !RAStop){
-        digitalWrite(ledPin, HIGH);
-    }
-    if (RALeft && !RAStop){
-        digitalWrite(ledPin, HIGH);
-    }
-    if (RAStop){
-        digitalWrite(ledPin, LOW);
-    }
+    digitalWrite(ledPin, HIGH);
 
-    if (DECRight && !DECStop){
+    if (RARight){
         digitalWrite(ledPin, HIGH);
     }
-    if (DECLeft && !DECStop){
+    if (RALeft){
         digitalWrite(ledPin, HIGH);
     }
-    if (DECStop){
+    /*if (RAStop){
         digitalWrite(ledPin, LOW);
-    }
+    }*/
 
 }

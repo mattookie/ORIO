@@ -213,7 +213,7 @@ String webpageCode = R"=====(
         };
         
         // Here change the IP Address of the ESP32
-        const ESP32_IP = 'http://192.168.4.1'; 
+        const ESP32_IP = 'http://172.20.10.3'; 
         
         // UI Handling Here
         // Creating function renderView which can be called to change the view

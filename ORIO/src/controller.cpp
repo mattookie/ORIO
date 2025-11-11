@@ -96,8 +96,14 @@ void loop(){
     if (RALeft){
         Serial.println("RA Moving to Left");
     }
-    if (RAStop){
-        Serial.println("RA Stopped");
+    if (RAStop && DECStop){
+        Serial.println("RA and DEC Stopped");
+    }
+    if (DECRight){
+        Serial.println("DEC Moving to Right");
+    }
+    if (DECLeft){
+        Serial.println("DEC Moving to Left");
     }
 
 }

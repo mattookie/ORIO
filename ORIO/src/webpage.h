@@ -302,6 +302,22 @@ String webpageCode = R"=====(
                 sendAction("RAStop");
             });
             
+            // Touch Controls
+            document.getElementById('RARight').addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Stops the stupid selecting text bug
+                sendAction("RARight");
+            });
+            document.getElementById('RARight').addEventListener('touchend', (e) => {
+                sendAction("RAStop");
+            });
+            document.getElementById('RALeft').addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Stops the stupid selecting text bug
+                sendAction("RALeft");
+            });
+            document.getElementById('RALeft').addEventListener('touchend', (e) => {
+                sendAction("RAStop");
+            });
+            
             // Declination Controls
             document.getElementById('DECRight').addEventListener('mousedown', () => {
                 sendAction("DECRight");
@@ -316,6 +332,21 @@ String webpageCode = R"=====(
                 sendAction("DECStop");
             });
             document.getElementById('DECStop').addEventListener('click', () => {
+                sendAction("DECStop");
+            });
+            // Touch Controls
+            document.getElementById('DECRight').addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Stops the stupid selecting text bug
+                sendAction("DECRight");
+            });
+            document.getElementById('DECRight').addEventListener('touchend', (e) => {
+                sendAction("DECStop");
+            });
+            document.getElementById('DECLeft').addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Stops the stupid selecting text bug
+                sendAction("DECLeft");
+            });
+            document.getElementById('DECLeft').addEventListener('touchend', (e) => {
                 sendAction("DECStop");
             });
         }
